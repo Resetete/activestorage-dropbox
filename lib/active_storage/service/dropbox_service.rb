@@ -93,8 +93,24 @@ module ActiveStorage
         end
       end
 
+      def access_token
+        url = 'https://api.dropbox.com/oauth2/token'
+
+        # authenticate
+        payload = {
+          grant_type: 'refresh_token',
+          refresh_token: config.fetch(:refresh_token)
+          client_id: config.fetch(:app_id),
+          client_secret: config.fetch(:app_secret),
+        }
+        # get access_token
+        response = RestClient.post(url, payload)
+        JSON.parse(response.body)['access_token']
+      end
+
       def client
-        @client ||= DropboxApi::Client.new(config.fetch(:access_token))
+        # everytime we create a client, we get a new access_token
+        @client ||= DropboxApi::Client.new(access_token: access_token)
       end
   end
 end

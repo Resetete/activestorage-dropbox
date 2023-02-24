@@ -1,7 +1,13 @@
+Update:
+this fork fixes two issues:
+- since September 2021, Dropbox apps do not generate long-lived acces tokens anymore. The new acces tokens live for 4 hours only and need to be refreshed. In this fork, the access token is passed as an `OAuth2::AccessToken` object.
+- adds the missing `custom_metadata`
+
+
 # Dropbox Support for Active Storage
 ### Activestorage::Service::DropboxService
 
-Wraps the [Dropbox](https://www.dropbox.com/) Storage Service as an Active Storage service. 
+Wraps the [Dropbox](https://www.dropbox.com/) Storage Service as an Active Storage service.
 
 [![Version](https://img.shields.io/gem/v/activestorage-dropbox.svg?style=flat-square)](https://rubygems.org/gems/activestorage-dropbox)
 [![Build Status](https://travis-ci.org/ashishprajapati/activestorage-dropbox.svg?branch=master)](https://travis-ci.org/ashishprajapati/activestorage-dropbox)

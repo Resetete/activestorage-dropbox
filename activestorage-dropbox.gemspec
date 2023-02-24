@@ -28,5 +28,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "coveralls", "~> 0.8.22"
   spec.add_development_dependency "rails", ">= 5.2"
 
-  spec.add_dependency "dropbox_api", "~> 0.1.21"
+  spec.add_dependency "dropbox_api", "~> 0.1.18"
 end

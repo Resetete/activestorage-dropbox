@@ -95,7 +95,7 @@ module ActiveStorage
 
 
       def client
-        @client ||= DropboxApi::Client.new(config.fetch(:access_token))
+        @client ||= DropboxApi::Client.new(OAuth2::AccessToken.new('client', config.fetch(:access_token)))
       end
   end
 end

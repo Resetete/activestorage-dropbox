@@ -70,49 +70,62 @@ module ActiveStorage
 
     private
 
-      attr_reader :config
+    attr_reader :config
 
-      def file_for(key)
-        client.get_temporary_link("/"+key)
+    def file_for(key)
+      client.get_temporary_link("/"+key)
+    end
+
+    def download_for(key)
+      client.download("/"+key) do |chunk|
+        return chunk.force_encoding(Encoding::BINARY)
       end
+    end
 
-      def download_for(key)
-        client.download("/"+key) do |chunk|
-          return chunk.force_encoding(Encoding::BINARY)
+    # Reads the file for the given key in chunks, yielding each to the block.
+    def stream(key)
+      begin
+        file = client.download("/"+key) do |chunk|
+          yield chunk
         end
+      rescue DropboxApi::Errors::NotFoundError
+        raise ActiveStorage::FileNotFoundError
       end
+    end
 
-      # Reads the file for the given key in chunks, yielding each to the block.
-      def stream(key)
-        begin
-          file = client.download("/"+key) do |chunk|
-            yield chunk
-          end
-        rescue DropboxApi::Errors::NotFoundError
-          raise ActiveStorage::FileNotFoundError
-        end
-      end
+    def access_token_hash
+      @access_token_hash ||= begin
 
-      # TODO: need to store the access_token as long as it is valid
-      def access_token
         url = 'https://api.dropbox.com/oauth2/token'
 
         # authenticate
         payload = {
           grant_type: 'refresh_token',
-          refresh_token: Rails.application.credentials.dig(:dropbox, :refresh_token),
-          client_id: Rails.application.credentials.dig(:dropbox, :app_key),
-          client_secret: Rails.application.credentials.dig(:dropbox, :app_secret)
+          refresh_token: config.fetch(:refresh_token),
+          client_id: config.fetch(:app_key),
+          client_secret: config.fetch(:app_secret),
         }
 
-        # get access_token
         response = RestClient.post(url, payload)
-        JSON.parse(response.body)['access_token']
-      end
+        parsed_json = JSON.parse(response.body)
 
-      def client
-        # @client ||= DropboxApi::Client.new(access_token: OAuth2::AccessToken.new('client', config.fetch(:access_token)))
-        @client ||= DropboxApi::Client.new(access_token: OAuth2::AccessToken.new('client', access_token))
+        # set when it will expire
+        @expires_at = Time.current.to_f + parsed_json['expires_in']
+
+        parsed_json
       end
+    end
+
+    def client
+      return @client unless access_token_expired?
+
+      @client ||= DropboxApi::Client.new(access_token: OAuth2::AccessToken.from_hash('client', access_token_hash))
+    end
+
+    def access_token_expired?
+      return true if @client.nil?
+
+      @expires_at - Time.current.to_f <= 10
+    end
   end
 end

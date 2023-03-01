@@ -33,13 +33,19 @@ Or install it yourself as:
     $ gem install activestorage-dropbox
 
 ## Usage
-Declare an Dropbox service in config/storage.yml
+Declare an Dropbox service in `config/storage.yml`
 
 ```
 dropbox:
   service: Dropbox
-  access_token: ""
+  refresh_token: <%= Rails.application.credentials.dig(:dropbox, :refresh_token) %>
+  app_key: <%= Rails.application.credentials.dig(:dropbox, :app_key) %>
+  app_secret: <%= Rails.application.credentials.dig(:dropbox, :app_secret) %>
 ```
+Store your dropbox credentials in the rails credentials.
+
+The `refresh_token` you need to gather through a manual process. You need to get a valid `access_token` e.g. from your dropbox app console and request a `refresh_token`.
+
 
 To use the Dropbox service in development, you add the following to config/environments/development.rb:
 

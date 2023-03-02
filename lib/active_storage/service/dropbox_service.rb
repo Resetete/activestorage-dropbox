@@ -119,7 +119,10 @@ module ActiveStorage
     def client
       return @client unless access_token_expired?
 
-      @client ||= DropboxApi::Client.new(access_token: OAuth2::AccessToken.from_hash('client', access_token_hash))
+      @client ||= DropboxApi::Client.new(
+        access_token: OAuth2::AccessToken.from_hash('client', access_token_hash),
+        on_token_refreshed: config.fetch(:refresh_token),
+      )
     end
 
     def access_token_expired?
